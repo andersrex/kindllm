@@ -38,6 +38,8 @@ Deploy:
 npm run deploy
 ```
 
+Go to [https://kindllm.<ACCOUNT_NAME>.workers.dev](https://kindllm.<ACCOUNT_NAME>.workers.dev) with your Kindle web browser
+
 ## Why?
 
 I got annoyed constantly looking things up on my phone while reading and tried making this app a while back, but couldn't get it to work well on the old Kindle web browser.
