@@ -10,7 +10,6 @@ export const ChatBox = () => (
     hx-indicator="#loader"
     hx-trigger="submit"
     hx-disable-element="self"
-    hx-headers="js:{ keys: getKeys() }"
   >
     <div
       class="chat-box-container"
