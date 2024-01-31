@@ -1,5 +1,9 @@
 export const Message = ({ message, suggestions }: { message: string; suggestions?: string }) => (
-  <p class="message">
+  <p
+    style={{
+      whiteSpace: "pre-wrap",
+    }}
+  >
     <b>Kindllm</b>: {message}
   </p>
 );

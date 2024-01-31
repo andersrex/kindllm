@@ -1,9 +1,10 @@
+import { Suggestions } from "./Suggestions";
+
 export const ChatBox = () => (
   <form
     hx-post="/chat"
     style={{
       width: "100%",
-      display: "flex",
     }}
     hx-target="#nextMessage"
     hx-swap="beforebegin scroll:bottom"
@@ -51,5 +52,6 @@ export const ChatBox = () => (
         <span>Send</span>
       </button>
     </div>
+    <Suggestions />
   </form>
 );

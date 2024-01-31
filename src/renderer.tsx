@@ -65,36 +65,6 @@ const style = html`
       display: none;
     }
 
-    .message {
-      white-space: pre-wrap;
-    }
-
-    .suggestion {
-      border: 1px solid black;
-      padding: 1rem 2rem;
-      border-radius: 10rem;
-      text-align: left;
-      font-size: 0.8rem;
-      margin-bottom: 0.5rem;
-      overflow: hidden;
-      width: 100%;
-      height: 55px;
-      display: table-cell;
-      vertical-align: middle;
-    }
-
-    .toggle-button {
-      border: 1px solid #ddd;
-      border-radius: 20rem;
-      flex-basis: content;
-      font-size: 1rem;
-      background-color: white;
-      position: absolute;
-      left: 1rem;
-      width: 55px;
-      height: 55px;
-    }
-
     .toggle-button .up-caret {
       display: block;
     }
@@ -130,11 +100,6 @@ const style = html`
     .hide-controls .messages-container {
       height: calc(100vh - 87.5px);
     }
-
-    #suggestions-retry {
-      display: none;
-      text-align: center;
-    }
   </style>
 `;
 
@@ -143,6 +108,10 @@ const style = html`
 const script = html`
   <script>
     document.addEventListener("htmx:afterSwap", function (evt) {
+      if (evt.detail.pathInfo.requestPath !== "/chat") {
+        return;
+      }
+
       evt.target.scrollIntoView({ behavior: "smooth" });
 
       let messages = [];
@@ -156,60 +125,12 @@ const script = html`
       const input = document.querySelector('input[name="messages"]');
       input.value = inputValue;
 
-      retrySuggestions();
+      getSuggestions();
     });
 
-    function parseJsonAndInsertSuggestions(response) {
+    document.addEventListener("htmx:beforeRequest", function (evt) {
       clearSuggestions();
 
-      try {
-        const { suggestions } = JSON.parse(decodeHtmlEntities(response));
-
-        console.log("suggestions", suggestions);
-
-        if (!suggestions || suggestions.length === 0) {
-          displaySuggestionsRetry("block");
-          return;
-        }
-
-        displaySuggestionsRetry("none");
-
-        // Only show the first 3 suggestions
-        suggestions.slice(0, 3).forEach((suggestion) => {
-          addSuggestion(suggestion);
-        });
-      } catch (e) {
-        console.error(e);
-        displaySuggestionsRetry("block");
-        return;
-      }
-    }
-
-    function submitForm() {
-      const form = document.querySelector("form");
-
-      const event = new Event("submit", {
-        bubbles: true, // Set bubbles to true for the event to bubble up through the DOM
-        cancelable: true, // Set cancelable to true if you want the event to be cancelable
-      });
-
-      // Dispatch the event
-      form.dispatchEvent(event);
-    }
-
-    function decodeHtmlEntities(jsonString) {
-      const htmlEntities = {
-        "&quot;": '"',
-        "&apos;": "'",
-        "&amp;": "&",
-        "&lt;": "<",
-        "&gt;": ">",
-      };
-
-      return jsonString.replace(/&quot;|&apos;|&amp;|&lt;|&gt;/g, (match) => htmlEntities[match]);
-    }
-
-    document.addEventListener("htmx:beforeRequest", function (evt) {
       if (evt.detail.pathInfo.requestPath !== "/chat") {
         return;
       }
@@ -217,41 +138,12 @@ const script = html`
       const input = evt.target.querySelector('input[name="message"]');
       const message = input.value;
       input.value = "";
-      clearSuggestions();
 
       const nextMessage = document.createElement("p");
       nextMessage.innerHTML = "<b>User</b>: " + message;
       document.getElementById("nextMessage").before(nextMessage);
       nextMessage.scrollIntoView({ behavior: "smooth" });
     });
-
-    // Call /suggestions using fetch API to try to get new suggestions
-    function retrySuggestions() {
-      const input = document.querySelector('input[name="messages"]');
-      const messages = input.value;
-
-      const url = "/suggestions";
-
-      const data = new URLSearchParams();
-      data.append("messages", messages);
-
-      displaySuggestionsRetry("none");
-
-      fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: data,
-      })
-        .then((response) => response.text())
-        .then((response) => {
-          parseJsonAndInsertSuggestions(response);
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-        });
-    }
 
     function clearChat() {
       const messagesContainer = document.getElementById("messages");
@@ -266,34 +158,38 @@ const script = html`
       clearSuggestions();
     }
 
-    function addSuggestion(suggestion) {
-      const suggestionElement = document.createElement("button");
-      suggestionElement.innerHTML = suggestion.length > 150 ? suggestion.substring(0, 150) + "..." : suggestion;
-      suggestionElement.classList.add("suggestion");
+    function setMessageAndSubmit(suggestion) {
+      const input = document.querySelector('input[name="message"]');
+      input.value = suggestion;
+      clearSuggestions();
 
-      const suggestionsContainer = document.getElementById("suggestions");
-      suggestionsContainer.appendChild(suggestionElement);
+      submitForm();
+    }
 
-      // When a suggestion is clicked, send it to the server
-      suggestionElement.addEventListener("click", function (evt) {
-        const input = document.querySelector('input[name="message"]');
-        input.value = suggestion;
-        clearSuggestions();
+    function submitForm() {
+      const form = document.querySelector("form");
 
-        submitForm();
+      const event = new Event("submit", {
+        bubbles: true, // Set bubbles to true for the event to bubble up through the DOM
+        cancelable: true, // Set cancelable to true if you want the event to be cancelable
       });
+
+      // Dispatch the event
+      form.dispatchEvent(event);
+    }
+
+    function getSuggestions() {
+      var myDiv = document.getElementById("suggestions-retry-button");
+      var event = new Event("retry");
+      myDiv.dispatchEvent(event);
     }
 
     function clearSuggestions() {
-      displaySuggestionsRetry("none");
+      const suggestionsRetry = document.getElementById("suggestions-retry");
+      suggestionsRetry.style.opacity = 0;
 
       const suggestionsContainer = document.getElementById("suggestions");
       suggestionsContainer.innerHTML = "";
-    }
-
-    function displaySuggestionsRetry(display) {
-      const suggestionsRetry = document.getElementById("suggestions-retry");
-      suggestionsRetry.style.display = display;
     }
 
     function hideAbout() {

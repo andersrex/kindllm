@@ -8,6 +8,7 @@ import { LandingView } from "./components/LandingView";
 import { PrivacyView } from "./components/Privacy";
 import { About } from "./components/About";
 import { getNextMessage, getSuggestions } from "./llm";
+import { Suggestions } from "./components/Suggestions";
 
 const ENABLE_NON_KINDLE = true; // Set to true to test on non-Kindle devices
 
@@ -65,14 +66,9 @@ app.post(
     }
 
     const { messages } = c.req.valid("form");
+    const suggestions = await getSuggestions(c.env.API_KEY, messages);
 
-    const suggestionsCompletion = await getSuggestions(c.env.API_KEY, messages);
-
-    if (!suggestionsCompletion) {
-      return c.text("");
-    }
-
-    return c.text(suggestionsCompletion.choices[0].message.content || "");
+    return c.html(<Suggestions suggestions={suggestions.slice(0, 3)} />);
   }
 );
 

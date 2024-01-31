@@ -44,7 +44,7 @@ export async function getNextMessage(apiKey: string, messages: string, message: 
   return messageContent;
 }
 
-export async function getSuggestions(apiKey: string, messages: string) {
+export async function getSuggestions(apiKey: string, messages: string): Promise<string[]> {
   const messageHistory = messages.split("||||").map((m) => {
     if (m.startsWith("<b>Kindllm</b>: ")) {
       return {
@@ -62,7 +62,7 @@ export async function getSuggestions(apiKey: string, messages: string) {
   const message = messageHistory[messageHistory.length - 1].content;
   const lastMessage = messageHistory[messageHistory.length - 2];
 
-  if (!message || !lastMessage) return;
+  if (!message || !lastMessage) return [];
 
   const suggestionsSystemPrompt = {
     role: "system",
@@ -82,7 +82,7 @@ export async function getSuggestions(apiKey: string, messages: string) {
     apiKey: apiKey,
   });
 
-  const suggestions = await openai.chat.completions.create({
+  const response = await openai.chat.completions.create({
     messages: suggestionsPrompt,
     model: MODEL,
     response_format: {
@@ -90,5 +90,6 @@ export async function getSuggestions(apiKey: string, messages: string) {
     },
   });
 
-  return suggestions;
+  const jsonContent = JSON.parse(response.choices[0].message.content || "{}");
+  return jsonContent?.suggestions || [];
 }

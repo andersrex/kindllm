@@ -9,7 +9,21 @@ export const Footer = () => (
       padding: "1rem",
     }}
   >
-    <button class="toggle-button" onclick="toggleShowControls()">
+    <button
+      style={{
+        border: "1px solid #ddd",
+        borderRadius: "20rem",
+        flexBasis: "content",
+        fontSize: "1rem",
+        backgroundColor: "white",
+        position: "absolute",
+        left: "1rem",
+        width: "55px",
+        height: "55px",
+      }}
+      class="toggle-button"
+      onclick="toggleShowControls()"
+    >
       <span class="up-caret">∧</span>
       <span class="down-caret">∨</span>
     </button>

@@ -42,7 +42,6 @@ export const ChatView = () => (
     </div>
 
     <ChatBox />
-    <Suggestions />
     <Footer />
   </div>
 );
